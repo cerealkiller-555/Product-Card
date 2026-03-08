@@ -8,32 +8,33 @@ products = [
 
 let cart = [];
 
-// Handle form submission and add product to cart
+// Handle final order submission with delivery details
 function submitOrder(e) {
     e.preventDefault();
     let form = e.target;
-    let productName = document.getElementById("cartProductName").innerText.replace("Product: ", "");
-
+    
     let fullName = form.querySelector('input[name="fullName"]').value;
     let phone = form.querySelector('input[name="phone"]').value;
     let address = form.querySelector('input[name="address"]').value;
 
-    let product = products.find(p => p.name === productName);
-
-    addToCart({
-        name: product.name,
-        price: product.price,
-        fullName: fullName,
-        phone: phone,
-        address: address
+    // Add delivery details to all cart items
+    cart.forEach(item => {
+        item.fullName = fullName;
+        item.phone = phone;
+        item.address = address;
     });
 
+    alert("Order confirmed!\nName: " + fullName + "\nPhone: " + phone + "\nAddress: " + address);
+    
+    // Clear cart and form
+    cart = [];
     document.getElementById("form-section").style.display = "none";
+    document.getElementById("cart-panel").style.display = "none";
     form.reset();
+    renderCart();
 }
-
-// Add product to cart or increase quantity
-function addToCart(product) {
+Name, productPrice) {
+    const product = { name: productName, price: productPrice };
     let existingItem = cart.find(item => item.name === product.name);
     
     if (existingItem) {
@@ -42,12 +43,19 @@ function addToCart(product) {
         product.quantity = 1;
         cart.push(product);
     }
+    
+    // Show cart panel
+    document.getElementById("cart-panel").style.display = "block";
     renderCart();
 }
 
-// Open order form for selected product
-function openForm(product) {
-    document.getElementById("cart-panel").style.display = "block";
+// Open order form to enter delivery details
+function showCheckout() {
+    if (cart.length === 0) {
+        alert("Cart is empty!");
+        return;
+    }
+    document.getElementById("form-section").style.display = "block"
     document.getElementById("form-section").style.display = "block";
     document.getElementById("cartProductName").innerText = "Product: " + product;
 }

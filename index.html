@@ -24,8 +24,7 @@
 
                 <div id="form-section"
                     style="display: none; margin-bottom: 20px; border: 1px solid #444; padding: 15px;">
-                    <h4>Complete Your Order</h4>
-                    <p id="cartProductName"></p>
+                    <h4>Delivery Information</h4>
                     <form onsubmit="submitOrder(event)">
                         <input type="text" placeholder="Full Name" name="fullName" required>
                         <input type="tel" placeholder="Phone Number" name="phone" required>
@@ -38,7 +37,7 @@
 
                 <p id="cart-items">No items yet</p>
                 <p>Subtotal: <span id="subtotal">0</span> EGP</p>
-                <button class=submit-order onclick="submitOrder(event)">Submit Order</button>
+                <button class="submit-order" onclick="showCheckout()">Submit Order</button>
             </div>
             <!-- Products -->
             <div class="content">
@@ -47,21 +46,21 @@
                     <img src="pipore2.jpeg" name="Pipore 250G" width="180" height="200" price="150">
                     <p>Pipore Yerba Mate 250G</p>
                     <p>150 EGP</p>
-                    <button class="add-to-cart" onclick="openForm('Pipore 250G')">Add to Cart</button>
+                    <button class="add-to-cart" onclick="addToCart('Pipore 250G', 150)">Add to Cart</button>
                 </div>
 
                 <div class="product-card">
                     <img src="images.jpeg" name="Sara 1KG" width="200">
                     <p>Sara Yerba Mate 1KG</p>
                     <p>300 EGP</p>
-                    <button class="add-to-cart" onclick="openForm('Sara 1KG')">Add to Cart</button>
+                    <button class="add-to-cart" onclick="addToCart('Sara 1KG', 300)">Add to Cart</button>
                 </div>
 
                 <div class="product-card">
                     <img src="1.jpeg" name="Royale 500G" width="200" price="200">
                     <p>Royale Yerba Mate 500G</p>
                     <p>200 EGP</p>
-                    <button class="add-to-cart" onclick="openForm('Royale 500G')">Add to Cart</button>
+                    <button class="add-to-cart" onclick="addToCart('Royale 500G', 200)">Add to Cart</button>
                 </div>
 
             </div>
