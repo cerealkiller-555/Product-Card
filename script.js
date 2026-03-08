@@ -1,3 +1,14 @@
+/* cart managment */
+
+products = [
+    { name: "Pipore 250G", price: 150 },
+    { name: "Sara 1KG", price: 300 },
+    { name: "Royale 500G", price: 200 }
+];
+
+
+// Modal management 
+
 function openForm(product) {
     document.getElementById("modal").classList.add("show");
     document.getElementById("overlay").classList.add("show");
@@ -12,7 +23,9 @@ function closeForm() {
 
 function submitOrder(e) {
     e.preventDefault();
-    alert("Order submitted successfully!");
+    let formInputs = e.target.querySlectorAll("input");
+    // extract data from form inputs and add to cart
+    addToCart(formInputs);
     closeForm()
 }
 
@@ -21,14 +34,12 @@ let cart = [
 
 ]
 
-function addToCart() {
-    document.getElementById("cart").classList.add("show");
-    document.getElementById("overlay").classList.add("show");
-    // Add product to cart array
+function addToCart(product) {
     cart.push(product);
-    // Update cart display
-    cart.display();
+    renderCart();
+    closeForm();
 }
+
 
 function removeFormCart() {
     document.getElementById("cart").classList.remove("show");
@@ -37,9 +48,7 @@ function removeFormCart() {
 
 }
 
-function updateQuantity() {
 
-}
 
 function renderCart() {
 
