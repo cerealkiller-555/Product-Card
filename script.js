@@ -2,256 +2,229 @@
 
 // All products we sell in the store
 const products = [
-    { name: "Pipore 250G", price: 150 },
-    { name: "Sara 1KG", price: 300 },
-    { name: "Royale 500G", price: 200 }
+  { name: "Pipore 250G", price: 150 },
+  { name: "Sara 1KG", price: 300 },
+  { name: "Royale 500G", price: 200 }
 ];
 
 // User's shopping cart (empty when page loads)
 let cart = [];
 
 // ====== GET PAGE ELEMENTS (HTML buttons and divs) ======
+const cartPanel = document.getElementById("cart-panel");
+const cartItems = document.getElementById("cart-items");
+const subtotal = document.getElementById("subtotal");
+const cartCount = document.getElementById("cart-count");
+const cartToggleButton = document.getElementById("cart-toggle");
 
-const cartPanel = document.getElementById("cart-panel");         // Cart box on left
-const formSection = document.getElementById("form-section");     // Checkout form
-const orderForm = document.getElementById("order-form");         // The form inputs
-const cartItems = document.getElementById("cart-items");         // List of cart items
-const subtotal = document.getElementById("subtotal");            // Price total
-const cartCount = document.getElementById("cart-count");         // "3" next to cart icon
+const orderForm = document.getElementById("order-form");
+const summaryList = document.getElementById("summary-list");
+const summaryTotal = document.getElementById("summary-total");
 
-// ====== FUNCTION 1: Show/Hide the cart ======
-function toggleCart() {
-    // Check: is cart hidden right now?
-    if (cartPanel.style.display === "none" || cartPanel.style.display === "") {
-        cartPanel.style.display = "block";   // SHOW the cart
-    } else {
-        cartPanel.style.display = "none";    // HIDE the cart
+const STORAGE_KEY = "sipCart";
+
+// ====== STORAGE ======
+function loadCart() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    if (Array.isArray(parsed)) {
+      cart = parsed;
     }
+  } catch (e) {
+    // ignore malformed storage
+  }
 }
 
-// ====== FUNCTION 2: Open checkout form ======
-function openCheckoutForm() {
-    // Step 1: Check if cart is empty
-    if (cart.length === 0) {
-        alert("Your cart is empty.");
-        return;  // STOP here - don't open form
-    }
-
-    // Step 2: Cart has items, so show the form
-    cartPanel.style.display = "block";
-    formSection.style.display = "block";
+function saveCart() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cart));
+  } catch (e) {
+    // ignore storage failures
+  }
 }
 
-// ====== FUNCTION 3: Close form ======
-function closeForm() {
-    formSection.style.display = "none";  // Hide the form
-    orderForm.reset();                   // Clear all input boxes
-}
-
-// ====== FUNCTION 4: Add product to cart ======
-function addToCart(productName) {
-    // Step 1: Find the product from the products list
-    let product = null;
-    for (let i = 0; i < products.length; i++) {
-        if (products[i].name === productName) {
-            product = products[i];
-            break;
-        }
-    }
-
-    // Step 2: Did we find it?
-    if (product === null) {
-        return;  // Product not found, stop
-    }
-
-    // Step 3: Is this product already in the cart?
-    let itemInCart = null;
-    for (let i = 0; i < cart.length; i++) {
-        if (cart[i].name === productName) {
-            itemInCart = cart[i];
-            break;
-        }
-    }
-
-    // Step 4: Add or update
-    if (itemInCart !== null) {
-        // Product already in cart - just add 1 to quantity
-        itemInCart.quantity = itemInCart.quantity + 1;
-    } else {
-        // Product NOT in cart - add it for the first time
-        let newItem = {
-            name: product.name,
-            price: product.price,
-            quantity: 1
-        };
-        cart.push(newItem);
-    }
-
-    // Step 5: Show the cart and update display
-    cartPanel.style.display = "block";
-    updateCartDisplay();
-}
-
-// ====== FUNCTION 5: Update the cart display ======
+// ====== CART RENDERING ======
 function updateCartDisplay() {
-    // Clear old cart display
-    cartItems.innerHTML = "";
-
-    // Count total items in cart
-    let totalItems = 0;
-    for (let i = 0; i < cart.length; i++) {
-        totalItems = totalItems + cart[i].quantity;
-    }
+  if (cartCount) {
+    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
     cartCount.innerText = totalItems;
+  }
 
-    // Is cart empty?
-    if (cart.length === 0) {
-        cartItems.innerHTML = "<p>No items yet</p>";
-        subtotal.innerText = "0";
-        return;
-    }
+  if (!cartItems || !subtotal) return;
 
-    // Loop through each item and show it
-    let totalPrice = 0;
+  cartItems.innerHTML = "";
 
-    for (let i = 0; i < cart.length; i++) {
-        let item = cart[i];
-        let itemPrice = item.price * item.quantity;
-        totalPrice = totalPrice + itemPrice;
+  if (cart.length === 0) {
+    cartItems.innerHTML = "<p>No items yet</p>";
+    subtotal.innerText = "0";
+    saveCart();
+    return;
+  }
 
-        // CREATE HTML FOR ONE ITEM ROW
-        // ================================
+  let totalPrice = 0;
 
-        // Create a container for the row
-        let row = document.createElement("div");
-        row.className = "cart-row";
+  cart.forEach((item, index) => {
+    const itemPrice = item.price * item.quantity;
+    totalPrice += itemPrice;
 
-        // Create the item name and price
-        let itemText = document.createElement("span");
-        itemText.innerText = item.name + " = L.E " + itemPrice;
+    const row = document.createElement("div");
+    row.className = "cart-row";
 
-        // Create quantity buttons container
-        let buttonBox = document.createElement("div");
-        buttonBox.className = "qty-control";
+    const itemText = document.createElement("span");
+    itemText.innerText = `${item.name} = L.E ${itemPrice}`;
 
-        // Create MINUS button
-        let minusBtn = document.createElement("button");
-        minusBtn.type = "button";
-        minusBtn.innerText = "-";
-        minusBtn.className = "qty-btn";
-        minusBtn.setAttribute("aria-label", "Decrease quantity for " + item.name);
-        minusBtn.onclick = function () { decreaseQuantity(i); };
+    const buttonBox = document.createElement("div");
+    buttonBox.className = "qty-control";
 
-        // Create quantity number display
-        let qtyNumber = document.createElement("span");
-        qtyNumber.className = "qty-value";
-        qtyNumber.innerText = item.quantity;
+    const minusBtn = document.createElement("button");
+    minusBtn.type = "button";
+    minusBtn.innerText = "-";
+    minusBtn.className = "qty-btn";
+    minusBtn.setAttribute("aria-label", `Decrease quantity for ${item.name}`);
+    minusBtn.addEventListener("click", () => decreaseQuantity(index));
 
-        // Create PLUS button
-        let plusBtn = document.createElement("button");
-        plusBtn.type = "button";
-        plusBtn.innerText = "+";
-        plusBtn.className = "qty-btn";
-        plusBtn.setAttribute("aria-label", "Increase quantity for " + item.name);
-        plusBtn.onclick = function () { increaseQuantity(i); };
+    const qtyNumber = document.createElement("span");
+    qtyNumber.className = "qty-value";
+    qtyNumber.innerText = item.quantity;
 
-        // Put buttons together: [ - ] [ 2 ] [ + ]
-        buttonBox.appendChild(minusBtn);
-        buttonBox.appendChild(qtyNumber);
-        buttonBox.appendChild(plusBtn);
+    const plusBtn = document.createElement("button");
+    plusBtn.type = "button";
+    plusBtn.innerText = "+";
+    plusBtn.className = "qty-btn";
+    plusBtn.setAttribute("aria-label", `Increase quantity for ${item.name}`);
+    plusBtn.addEventListener("click", () => increaseQuantity(index));
 
-        // Put everything in the row
-        row.appendChild(itemText);
-        row.appendChild(buttonBox);
+    buttonBox.appendChild(minusBtn);
+    buttonBox.appendChild(qtyNumber);
+    buttonBox.appendChild(plusBtn);
 
-        // Add the row to the cart display
-        cartItems.appendChild(row);
-    }
+    row.appendChild(itemText);
+    row.appendChild(buttonBox);
 
-    // Show total price
-    subtotal.innerText = totalPrice;
+    cartItems.appendChild(row);
+  });
+
+  subtotal.innerText = totalPrice;
+  saveCart();
 }
 
-// ====== FUNCTION 6: Increase quantity ======
+function renderCheckoutSummary() {
+  if (!summaryList || !summaryTotal) return;
+
+  summaryList.innerHTML = "";
+
+  let totalPrice = 0;
+  cart.forEach(item => {
+    const li = document.createElement("li");
+    li.textContent = `${item.name} x ${item.quantity} - L.E ${item.price * item.quantity}`;
+    summaryList.appendChild(li);
+    totalPrice += item.price * item.quantity;
+  });
+
+  summaryTotal.textContent = `Total: L.E ${totalPrice}`;
+}
+
+// ====== CART MANAGEMENT ======
+function addToCart(productName) {
+  const product = products.find((p) => p.name === productName);
+  if (!product) return;
+
+  const existing = cart.find((c) => c.name === productName);
+  if (existing) {
+    existing.quantity += 1;
+  } else {
+    cart.push({ name: product.name, price: product.price, quantity: 1 });
+  }
+
+  updateCartDisplay();
+}
+
 function increaseQuantity(index) {
-    cart[index].quantity = cart[index].quantity + 1;
-    updateCartDisplay();
+  if (!cart[index]) return;
+  cart[index].quantity += 1;
+  updateCartDisplay();
 }
 
-// ====== FUNCTION 7: Decrease quantity ======
 function decreaseQuantity(index) {
-    // If quantity is 1, remove the item
-    if (cart[index].quantity === 1) {
-        cart.splice(index, 1);  // Remove item from cart
-    } else {
-        // Otherwise just decrease quantity
-        cart[index].quantity = cart[index].quantity - 1;
-    }
-    updateCartDisplay();
+  if (!cart[index]) return;
+
+  if (cart[index].quantity <= 1) {
+    cart.splice(index, 1);
+  } else {
+    cart[index].quantity -= 1;
+  }
+
+  updateCartDisplay();
 }
 
-// ====== FUNCTION 8: Submit order ======
+function toggleCart() {
+  if (!cartPanel) return;
+  const isOpen = cartPanel.style.display === "block";
+  cartPanel.style.display = isOpen ? "none" : "block";
+}
+
+function initOutsideClickListener() {
+  if (!cartPanel) return;
+
+  document.addEventListener("click", (event) => {
+    if (cartPanel.style.display !== "block") return;
+    if (event.target.closest("#cart-panel") || event.target.closest("#cart-toggle")) return;
+    cartPanel.style.display = "none";
+  });
+}
+
 function submitOrder(event) {
-    event.preventDefault();  // Don't reload page
+  if (event) event.preventDefault();
 
-    // Step 1: Check cart not empty
-    if (cart.length === 0) {
-        alert("Your cart is empty.");
-        return;
-    }
+  if (cart.length === 0) {
+    alert("Your cart is empty.");
+    return;
+  }
 
-    // Step 2: Get user input from form
-    let fullName = orderForm.fullName.value.trim();
-    let phone = orderForm.phone.value.trim();
-    let address = orderForm.address.value.trim();
+  if (!orderForm) return;
 
-    // Step 3: Check all fields are filled
-    if (fullName === "" || phone === "" || address === "") {
-        alert("Please fill in all fields");
-        return;
-    }
+  const fullName = orderForm.fullName.value.trim();
+  const phone = orderForm.phone.value.trim();
+  const address = orderForm.address.value.trim();
 
-    // Step 4: All good! Process order
-    alert("Order submitted successfully!");
+  if (!fullName || !phone || !address) {
+    alert("Please fill in all fields.");
+    return;
+  }
 
-    // Step 5: Clear everything
-    cart = [];  // Empty the cart
-    updateCartDisplay();
-    closeForm();
+  alert("Order submitted successfully!");
+  cart = [];
+  updateCartDisplay();
+  if (orderForm) orderForm.reset();
 }
 
-// ====== CONNECT BUTTONS TO FUNCTIONS ======
+// ====== INIT ======
+function init() {
+  loadCart();
+  updateCartDisplay();
+  renderCheckoutSummary();
+  initOutsideClickListener();
 
-// Cart toggle button
-document.getElementById("cart-toggle").addEventListener("click", function () {
-    toggleCart();
-});
-
-// Cancel button
-document.getElementById("cancel-order").addEventListener("click", function () {
-    closeForm();
-});
-
-// Checkout button
-document.getElementById("submit-order").addEventListener("click", function () {
-    openCheckoutForm();
-});
-
-// Submit order button
-orderForm.addEventListener("submit", function (event) {
-    submitOrder(event);
-});
-
-// "Add to Cart" buttons on products
-let addButtons = document.querySelectorAll(".js-add-to-cart");
-for (let i = 0; i < addButtons.length; i++) {
-    addButtons[i].addEventListener("click", function (event) {
-        event.preventDefault();
-        event.stopPropagation();
-        let productName = this.getAttribute("data-product");
-        addToCart(productName);
+  if (cartToggleButton) {
+    cartToggleButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      toggleCart();
     });
+  }
+
+  const addButtons = document.querySelectorAll(".js-add-to-cart");
+  addButtons.forEach((btn) => {
+    btn.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      addToCart(btn.getAttribute("data-product"));
+    });
+  });
+
+  if (orderForm) {
+    orderForm.addEventListener("submit", submitOrder);
+  }
 }
 
-// ====== START: Show empty cart when page loads ======
-updateCartDisplay();
+init();

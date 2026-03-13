@@ -24,31 +24,16 @@
     </header>
 
     <main>
-        <section id="cart-panel" aria-live="polite">
-            <h3>Shopping Cart</h3>
-
-            <div id="form-section">
-                <h4>Complete Your Order</h4>
-                <form id="order-form">
-                    <label for="fullName">Full Name</label>
-                    <input id="fullName" type="text" placeholder="Full Name" name="fullName" required>
-
-                    <label for="phone">Phone Number</label>
-                    <input id="phone" type="tel" placeholder="Phone Number" name="phone" required>
-
-                    <label for="address">Address</label>
-                    <input id="address" type="text" placeholder="Address" name="address" required>
-
-                    <button class="add-to-cart" type="submit">Confirm Order</button>
-                    <button id="cancel-order" type="button">Cancel</button>
-                </form>
-            </div>
-
+        <section id="cart-panel" class="cart" aria-label="Shopping cart">
             <div id="cart-items">
                 <p>No items yet</p>
             </div>
+
             <p>Subtotal: <span id="subtotal">0</span> EGP</p>
-            <button id="submit-order" class="add-to-cart" type="button">Checkout</button>
+
+            <a href="checkout.html">
+                <button type="button">Checkout</button>
+            </a>
         </section>
 
         <section class="content">
